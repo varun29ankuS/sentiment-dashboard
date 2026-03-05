@@ -1,15 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 
 const SESSION_NAME = "sentiment_session";
 
-function verifyTokenEdge(token: string, secret: string): boolean {
+async function verifyTokenEdge(token: string, secret: string): Promise<boolean> {
   try {
     const [payloadB64, sig] = token.split(".");
     if (!payloadB64 || !sig) return false;
 
-    const payload = Buffer.from(payloadB64, "base64url").toString();
-    const expected = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+    // Decode payload
+    const payloadBytes = Uint8Array.from(atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+    const payload = new TextDecoder().decode(payloadBytes);
+
+    // Compute HMAC-SHA256 using Web Crypto API
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
+
+    // Convert to hex
+    const expected = Array.from(new Uint8Array(signature))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
 
     if (sig !== expected) return false;
 
@@ -20,7 +36,7 @@ function verifyTokenEdge(token: string, secret: string): boolean {
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow login page and auth API
@@ -42,7 +58,7 @@ export function middleware(request: NextRequest) {
   const ADMIN_PASS = process.env.ADMIN_PASS || "admin123";
   const secret = process.env.SESSION_SECRET || "change-me-in-production-" + ADMIN_PASS;
 
-  if (!token || !verifyTokenEdge(token, secret)) {
+  if (!token || !(await verifyTokenEdge(token, secret))) {
     // For API routes, return 401
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
