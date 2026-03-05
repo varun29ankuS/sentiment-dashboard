@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sentiment Dashboard",
-  description: "Sales call sentiment analysis dashboard powered by Sarvam AI",
+  description: "Sales call sentiment analysis dashboard",
 };
 
 export default function RootLayout({

@@ -205,7 +205,7 @@ export default function UploadPage() {
               <div>
                 <CardTitle>Uploaded Files ({uploadedFiles.length})</CardTitle>
                 <CardDescription>
-                  Ready to process with Sarvam AI
+                  Ready to process
                 </CardDescription>
               </div>
               <Button

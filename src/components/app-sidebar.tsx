@@ -98,9 +98,6 @@ export function AppSidebar() {
             </svg>
             Sign out
           </button>
-          <p className="text-[10px] text-muted-foreground leading-relaxed">
-            Powered by <span className="font-medium">Sarvam AI</span>
-          </p>
         </div>
       </SidebarFooter>
     </Sidebar>

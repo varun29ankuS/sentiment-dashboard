@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateCredentials, createSession, getSession, destroySession } from "@/lib/auth";
+import { validateCredentials, createSessionToken, getSession, SESSION_NAME, SESSION_MAX_AGE } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -13,8 +13,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  await createSession(username);
-  return NextResponse.json({ success: true, username });
+  const token = createSessionToken(username);
+  const response = NextResponse.json({ success: true, username });
+  response.cookies.set(SESSION_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: SESSION_MAX_AGE,
+    path: "/",
+  });
+  return response;
 }
 
 export async function GET() {
@@ -26,6 +34,7 @@ export async function GET() {
 }
 
 export async function DELETE() {
-  await destroySession();
-  return NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true });
+  response.cookies.delete(SESSION_NAME);
+  return response;
 }
