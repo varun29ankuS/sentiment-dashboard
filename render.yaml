@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: sentiment-dashboard
+    runtime: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: DATA_DIR
+        value: /opt/render/project/src/data
+      - key: UPLOADS_DIR
+        value: /opt/render/project/src/data/uploads
+    disk:
+      name: sentiment-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
